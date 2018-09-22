@@ -7,9 +7,13 @@ void yyerror (char const *s);
 
 void yyerror (char const *s)
 {
+	
 	return_value = 1;
 	printf("ERRO!\n");
+	
+
 }
+
 
 %}
 %error-verbose
@@ -108,7 +112,7 @@ user_type:
 /* CAMPO */
 field:
 	encapsulation_type primitive_type TK_IDENTIFICADOR | 
-	primitive_type TK_IDENTIFICADOR 
+	primitive_type TK_IDENTIFICADOR
 	;
 
 /* LISTA DE CAMPO */
@@ -198,7 +202,7 @@ sequence:
 command:
 	command_block |
 	local_var_declaration |
-     	attribution |
+    attribution |
 	flow_control |
 	input_command |
 	output_command |
@@ -250,17 +254,28 @@ attribution:
 	;
 
 primitive_atr: 
-	TK_IDENTIFICADOR '=' expression |
-	TK_IDENTIFICADOR '=' literal |
-	TK_IDENTIFICADOR '[' expression ']' '=' expression |
-	TK_IDENTIFICADOR '[' expression ']' '=' literal|
-	TK_IDENTIFICADOR '[' literal ']' '=' literal
+	TK_IDENTIFICADOR '=' expression_or_literal_or_variable |
+	TK_IDENTIFICADOR '[' literal ']' '=' expression_or_literal_or_variable |
+	TK_IDENTIFICADOR '[' expression ']' '=' expression_or_literal_or_variable
 	;
 
 user_type_atr:
-	TK_IDENTIFICADOR '$' field '=' expression
-	TK_IDENTIFICADOR '[' expression ']' '$' field '=' expression
+	TK_IDENTIFICADOR '$' expression '=' expression_or_literal_or_variable |
+	TK_IDENTIFICADOR '$' literal '=' expression_or_literal_or_variable |
+	TK_IDENTIFICADOR '[' expression ']' '$' expression_or_literal '=' expression_or_literal_or_variable |
+	TK_IDENTIFICADOR '[' literal ']' '$' expression_or_literal '=' expression_or_literal_or_variable
 	;
+
+expression_or_literal:
+	expression |
+    literal 
+    ;
+
+expression_or_literal_or_variable:
+	expression_or_literal |
+    TK_IDENTIFICADOR '[' literal ']' |
+    TK_IDENTIFICADOR '[' expression ']'
+    ;
 
 /* COMANDOS DE ENTRADA E SAÍDA */
 
@@ -276,7 +291,7 @@ expression:
    	arithmetic_exp |
    	logical_exp |
    	pipes_exp |
-	TK_IDENTIFICADOR 
+	TK_IDENTIFICADOR
 	;
 	
 expression_list:
@@ -371,13 +386,17 @@ for_expression:
 	command_list_for ':' expression ':' command_list_for
 	;
 
-command_list_for: //shift/reduce
-	single_command_for |
-	command_list_for ',' single_command_for
+command_list_for:
+	commands_for_for |
+	command_list_for ',' commands_for_for
 	;
 
-single_command_for: //não pode conter comandos com vírgula REVISAR...
-	command
+commands_for_for: //NÃO PODE CONTER ',' DENTRO DE COMANDOS >> SIMPLES <<
+	command_block |
+	local_var_declaration |
+    attribution |
+	input_command |
+	shift_command
 	;
 
 command_while:
@@ -404,10 +423,10 @@ pipes:
 	;
 	    
 /* TIPOS DE EXPRESSÃO */
- arithmetic_exp:   						
+ arithmetic_exp: 
+ 	arithmetic_operand arithmetic_operator_binary arithmetic_operand |
  	arithmetic_exp arithmetic_operator_binary arithmetic_operand |
- 	arithmetic_operand arithmetic_operator_binary '(' arithmetic_exp ')' |
-	arithmetic_operand arithmetic_operator_unary arithmetic_operand_type
+ 	arithmetic_operand arithmetic_operator_binary '(' arithmetic_exp ')'
  	;
 
 arithmetic_operand:
@@ -418,6 +437,7 @@ arithmetic_operand:
 arithmetic_operand_type:
  	TK_IDENTIFICADOR |
  	TK_IDENTIFICADOR '[' TK_LIT_INT ']' |
+ 	TK_IDENTIFICADOR '[' arithmetic_exp ']' |
  	TK_LIT_INT |
  	TK_LIT_FLOAT |
  	function_call
@@ -472,7 +492,7 @@ pipe_operation:
 	TK_OC_FORWARD_PIPE |
 	TK_OC_BASH_PIPE
 	;
-
+/*
 pipe_elements:
 	TK_IDENTIFICADOR |
  	TK_IDENTIFICADOR '[' TK_LIT_INT ']' |
@@ -481,7 +501,7 @@ pipe_elements:
  	TK_LIT_FLOAT |
  	function_call
  	;
-
+*/
 //// FIM BLOCO DE COMANDOS ////
 
 %%
