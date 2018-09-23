@@ -216,12 +216,12 @@ command:
 
 local_var_decl:
 	primitive_type TK_IDENTIFICADOR local_var_att |
+	primitive_type TK_IDENTIFICADOR |
 	TK_IDENTIFICADOR TK_IDENTIFICADOR
 	;
 
 local_var_att:
-	TK_OC_LE value_init |
-	//empty
+	TK_OC_LE value_init
 	;
 
 
@@ -273,7 +273,6 @@ expression_or_literal:
 
 expression_or_literal_or_variable:
 	expression_or_literal |
-    TK_IDENTIFICADOR '[' literal ']' |
     TK_IDENTIFICADOR '[' expression ']'
     ;
 
@@ -328,14 +327,19 @@ shift_command:
 
 id_types:
 	TK_IDENTIFICADOR |
+	TK_IDENTIFICADOR '$' id_or_int |
 	TK_IDENTIFICADOR '[' expression ']' | 
-	TK_IDENTIFICADOR '$' TK_IDENTIFICADOR |
-	TK_IDENTIFICADOR '[' expression ']' '$' TK_IDENTIFICADOR
+	TK_IDENTIFICADOR '[' expression ']' '$' id_or_int
+	;
+
+id_or_int:
+	TK_IDENTIFICADOR |
+	TK_LIT_INT
 	;
 
 number_or_expression:
-	TK_LIT_INT |
-	expression
+	expression |
+	TK_LIT_INT
 	;
 
 // COMANDO DE RETORNO, BREAK, CONTINUE E CASE 
@@ -437,7 +441,6 @@ arithmetic_operand:
 arithmetic_operand_type:
  	TK_IDENTIFICADOR |
  	TK_IDENTIFICADOR '[' TK_LIT_INT ']' |
- 	TK_IDENTIFICADOR '[' arithmetic_exp ']' |
  	TK_LIT_INT |
  	TK_LIT_FLOAT |
  	function_call
@@ -457,15 +460,25 @@ arithmetic_operator_binary:
 	'^'
 	;
 
-logical_exp:								//revisar operadores '?'
-	arithmetic_exp relational_comp arithmetic_exp |
-	logical_exp logical_op_binary TK_IDENTIFICADOR |
-	logical_op_unary TK_IDENTIFICADOR
+logical_exp:
+	logical_operands relational_comp logical_operands |
+	logical_exp relational_comp logical_operands |
+	logical_operands logical_op_binary logical_operands |
+	logical_exp logical_op_binary logical_operands |
+	logical_op_unary logical_operands
+	;
+
+logical_operands:
+	TK_IDENTIFICADOR |
+	TK_LIT_INT |
+	TK_LIT_FLOAT |
+	arithmetic_exp |
+	'(' arithmetic_exp ')'
 	;
 
 logical_op_unary:
 	'!' |
-	'?'
+	'?' 
 	;
 
 logical_op_binary:
